@@ -1,6 +1,6 @@
 {
   "name": "obj-transmute",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Transmute object to another one using defined rules",
   "main": "index.js",
   "scripts": {
