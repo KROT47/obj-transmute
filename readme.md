@@ -36,8 +36,7 @@ var config = {
 		passOtherProps: true
 	};
 
-ObjTransmute( obj, rules, config ) => 
-	{
+ObjTransmute( obj, rules, config ) => {
 		b: 'Hello world!',	// not defined in rules - passes through
 		c: 1,
 		d: 'Hello world!1',
@@ -53,14 +52,13 @@ var config = {
 		init: function () { this.obj.other2 = this.obj.other1 }
 	};
 
-ObjTransmute( obj, rules, config ) => 
-	{
-		a: 1,				// origin
-		b: 'Hello world!',	// origin
+ObjTransmute( obj, rules, config ) => {
+		a: 1,               // origin
+		b: 'Hello world!',  // origin
 		c: 1,
 		d: 'Hello world!1',
 		e: 'Bye world!',
-		other1: null		// unused value passes through
-		other2: null		// unused value passes through
+		other1: null				// unused value passes through
+		other2: null				// unused value passes through
 	}
 ```
