@@ -40,7 +40,7 @@ function ObjTransmute( obj, rules, config ) {
 		context = { obj: obj, rules: rules, config: config, result: result },
 		toDelete = [],
 		requireLog = {},
-		rule, prop, originProp, defaultValue, saveOrigin, require, requiredProp;
+		rule, prop, defaultValue, saveOrigin, requiredProp;
 
 	config = extend( {}, defaultConfig, config );
 
@@ -86,7 +86,7 @@ function ObjTransmute( obj, rules, config ) {
 	}
 
 	function propHandler( prop, rule ) {
-		originProp = null;
+		var require, originProp;
 
 		switch ( typeof rule ) {
 
