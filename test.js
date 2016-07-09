@@ -260,6 +260,51 @@ result = ObjTransmute( obj, rules, config );
 check( testObj, result );
 
 
+/* ------------ 9 ------------- */
+
+// var defaultOptions = {
+//         other1: 123
+//     };
+
+var config = {
+        // otherProps: true,
+        // saveOrigin: true,
+        // get: function ( value, obj, originProp, prop ) { return value || defaultOptions[ prop ] }
+    };
+
+var obj = {
+        a: 'Hello world',
+        b: 1
+    },
+    rules = {
+    	c: {
+    		require: 'd',           // tells that first we need to get result.d
+    		get: function () { return this.result.d + 1 }
+    	},
+    	d: {
+    		require: 'e',           // tells that first we need to get result.e
+    		get: function () { return this.result.e * 2 }
+    	},
+    	e: function () { return this.obj.b + 2 },
+    	f: {
+    		from: 'a',              // we get value from obj.a
+    		require: [ 'c', 'e' ],  // and require result.c and result.e to be already calculated
+    		get: function ( a ) { return a + ( this.result.c + this.result.e ) }
+    	}
+    };
+
+testObj = {
+	c: 7,
+	d: 6,
+	e: 3,
+	f: 'Hello world10'
+};
+
+result = ObjTransmute( obj, rules, config );
+
+check( testObj, result );
+
+
 /* --------------------------------- End --------------------------------- */
 
 console.log( 'Done!' );

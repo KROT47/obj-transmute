@@ -38,7 +38,9 @@ function ObjTransmute( obj, rules, config ) {
 
 	var result = {},
 		context = { obj: obj, rules: rules, config: config, result: result },
-		rule, prop, originProp, defaultValue, saveOrigin, toDelete = [];
+		toDelete = [],
+		requireLog = {},
+		rule, prop, originProp, defaultValue, saveOrigin, require, requiredProp;
 
 	config = extend( {}, defaultConfig, config );
 
@@ -50,17 +52,40 @@ function ObjTransmute( obj, rules, config ) {
 			);
 	}
 
+	// check that required properties is not in recursion
+	function recursionCheck( prop, requiredProp, checkedProps ) {
+		var checkArray = requireLog[ requiredProp ];
+
+		if ( !checkArray ) return;
+
+		checkedProps = checkedProps || [ prop ];
+		checkedProps.push( requiredProp );
+
+		if ( checkArray.indexOf( prop ) != -1 ) {
+			checkedProps.push( prop );
+			throw Error( `Recursion require error in stack ${checkedProps.join(' -> ')}` )
+		}
+
+		for ( var i = checkArray.length;  i--; ) {
+			recursionCheck( prop, checkArray[ i ], checkedProps );
+		}
+	}
+
+	// check that required property is ok
+	function checkRequire( prop, requiredProp ) {
+		recursionCheck( prop, requiredProp );
+
+		if ( !requireLog[ prop ] ) requireLog[ prop ] = [];
+
+		requireLog[ prop ].push( requiredProp );
+	}
+
+	// just getting needed value
 	function get( getFunc, originProp, prop ) {
 		return getFunc.call( context, obj[ originProp ], obj, originProp, prop );
 	}
 
-	for ( var i = props.length; i--; ) {
-		prop = props[ i ];
-		rule = rules[ prop ];
-
-		// if prop is already defined - go next
-		if ( result[ prop ] !== undefined ) continue;
-
+	function propHandler( prop, rule ) {
 		originProp = null;
 
 		switch ( typeof rule ) {
@@ -69,7 +94,29 @@ function ObjTransmute( obj, rules, config ) {
 			break;
 
 			case 'object':
-				// if ( !rule.from ) throw Error( `Undefined prop in ruleConfig.${prop}` );
+
+				if ( require = rule.require ) {
+
+					if ( !Array.isArray( require ) ) require = [ require ];
+
+					for ( var i = require.length; i--; ) {
+						
+						requiredProp = require[ i ];
+
+						if ( result[ requiredProp ] === undefined ) {
+
+							if ( rules[ requiredProp ] === undefined ) {
+								throw Error(
+									`Required property '${requiredProp}' is not defined in rules`
+								);
+							}
+
+							checkRequire( prop, requiredProp );
+
+							propHandler( requiredProp, rules[ requiredProp ] );
+						}
+					}
+				}
 
 				originProp = rule.from || prop;
 
@@ -133,6 +180,16 @@ function ObjTransmute( obj, rules, config ) {
 		}
 	}
 
+	for ( var i = props.length; i--; ) {
+		prop = props[ i ];
+		rule = rules[ prop ];
+
+		// if prop is already defined - go next
+		if ( result[ prop ] !== undefined ) continue;
+
+		propHandler( prop, rule );
+	}
+
 	for ( i = toDelete.length; i--; ) delete result[ toDelete[ i ] ];
 
 	return result;
@@ -157,24 +214,3 @@ function extend( result ) {
 
 	return result;
 }
-
-/* --------------------------------- Rules Examples --------------------------------- */
-
-// all function would be executed in context of { obj: obj, rules: rules }
-// var rules = {
-		// text: 'text',
-
-		// content: 'text',
-		// or
-		// content: { prop: 'text' },
-
-		// content: function ( obj, result ) { return obj.text || 'Hello World' },
-
-		// content: {
-		// 	prop: 'text',
-		// 	default: 'Hello world!',
-		// 	get: ( text ) => { return `This is text: ${text}` }
-		// },
-
-		// created_at: { default: 'NOW()' },
-	// };
