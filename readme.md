@@ -16,15 +16,15 @@ var obj = {
     },
     rules = {
         c: 'a',
-        d: function ( obj ) {
+        d: function ( obj, result ) {
             // this.obj = obj
             // this.rules = rules
             return obj.b + this.obj.a
         },
         e: {
-            param: 'a1',
+            prop: 'a1',
             default: 'Bye world!',
-            get: function ( a1 ) { return a1 + '!!!' }
+            get: function ( a1, originProp, obj, prop ) { return a1 + '!!!' }
         }
     };
 
@@ -33,7 +33,7 @@ ObjTransmute( obj, rules ) => { c: 1, d: 'Hello world!1', e: 'Bye world!' }
 // -- Using config
 
 var config = {
-        passOtherProps: true
+        otherProps: true
     };
 
 ObjTransmute( obj, rules, config ) => {
@@ -46,10 +46,14 @@ ObjTransmute( obj, rules, config ) => {
 
 // --
 
+var defaultOptions = {
+        other1: 123
+    };
+
 var config = {
-        passOtherProps: true,
+        otherProps: true,
         saveOrigin: true,
-        init: function () { this.obj.other2 = this.obj.other1 }
+        get: function ( value, originProp, obj, prop ) { return value || defaultOptions[ prop ] }
     };
 
 ObjTransmute( obj, rules, config ) => {
@@ -58,7 +62,6 @@ ObjTransmute( obj, rules, config ) => {
         c: 1,
         d: 'Hello world!1',
         e: 'Bye world!',
-        other1: null                // unused value passes through
-        other2: null                // unused value passes through
+        other1: 123                // unused value but using default get() returns value from defaultOptions
     }
 ```

@@ -11,8 +11,8 @@ var obj = {
 	index = 1,
 	rules,
 	config,
-	mutated,
-	result;
+	result,
+	testObj;
 
 
 /* ------------ 1 ------------- */
@@ -21,16 +21,16 @@ rules = {
 	// saveOrigin: true,
 	content: 'text',
 	num: {
-		param: 'temp',
+		prop: 'temp',
 		get: ( temp ) => { return temp + 1 }
 	},
 	obj1: {
-		param: 'obj',
+		prop: 'obj',
 		get: ( obj ) => { return { test: obj.test + 1 } }
 	}
 };
 
-result = {
+testObj = {
 	content: 'Hello world',
 	num: 124,
 	obj1: {
@@ -38,9 +38,9 @@ result = {
 	}
 };
 
-mutated = ObjTransmute( obj, rules );
+result = ObjTransmute( obj, rules );
 
-check( result, mutated );
+check( testObj, result );
 
 
 /* ------------ 2 ------------- */
@@ -48,17 +48,17 @@ check( result, mutated );
 rules = {
 	content: 'text',
 	num: {
-		param: 'temp',
+		prop: 'temp',
 		get: ( temp ) => { return temp + 1 }
 	}
 };
 
 config = {
-	passOtherProps: true,
+	otherProps: true,
 	saveOrigin: true,
 };
 
-result = {
+testObj = {
 	text: 'Hello world',
 	content: 'Hello world',
 	temp: 123,
@@ -68,9 +68,9 @@ result = {
 	}
 };
 
-mutated = ObjTransmute( obj, rules, config );
+result = ObjTransmute( obj, rules, config );
 
-check( result, mutated );
+check( testObj, result );
 
 
 /* ------------ 3 ------------- */
@@ -78,17 +78,17 @@ check( result, mutated );
 rules = {
 	content: 'text',
 	num: {
-		param: 'temp',
+		prop: 'temp',
 		get: ( temp ) => { return temp + 1 }
 	}
 };
 
 config = {
-	passOtherProps: true,
+	otherProps: true,
 	// saveOrigin: true,
 };
 
-result = {
+testObj = {
 	content: 'Hello world',
 	num: 124,
 	obj: {
@@ -96,28 +96,28 @@ result = {
 	}
 };
 
-mutated = ObjTransmute( obj, rules, config );
+result = ObjTransmute( obj, rules, config );
 
-check( result, mutated );
+check( testObj, result );
 
 
-/* ------------ 3 ------------- */
+/* ------------ 4 ------------- */
 
 rules = {
 	content: 'text',
 	num: {
-		param: 'none',
+		prop: 'none',
 		default: 111,
 		get: ( none ) => { return none + 1 }
 	}
 };
 
 config = {
-	passOtherProps: true,
+	otherProps: true,
 	// saveOrigin: true,
 };
 
-result = {
+testObj = {
 	content: 'Hello world',
 	num: 111,
 	obj: {
@@ -125,23 +125,69 @@ result = {
 	}
 };
 
-mutated = ObjTransmute( obj, rules, config );
+result = ObjTransmute( obj, rules, config );
 
-check( result, mutated );
+check( testObj, result );
 
 
 
-console.log( 'All good!' );
+/* ------------ 5 ------------- */
+
+rules = {
+	content: {
+		prop: 'text',
+		saveOrigin: false
+	},
+	num: {
+		prop: 'none',
+		default: 111,
+		get: ( none ) => { return none + 1 }
+	},
+	opt: 'opt'
+};
+
+var defaultObj = {
+	opt: 123
+};
+
+config = {
+	otherProps: true,
+	get: function ( value, originProp, obj, prop ) { return value || defaultObj[ originProp ] },
+	saveOrigin: true,
+};
+
+testObj = {
+	// text: 'Hello world',
+	temp: 123,
+	num: 111,
+	obj: {
+		test: 1
+	},
+	opt: 123
+};
+
+result = ObjTransmute( obj, rules, config );
+
+check( testObj, result );
+
+
+/* --------------------------------- End --------------------------------- */
+
+console.log( 'Done!' );
 
 
 /* --------------------------------- Helpers --------------------------------- */
 
-function check( result, mutated ) {
-	for ( var i in result ) {
-		if ( typeof result[ i ] == 'object' ) {
-			check( result[ i ], mutated[ i ], true );
-		} else if ( mutated[ i ] != result[ i ] ) {
-			console.error( `Error in ${ index }: mutated[ ${ i } ] != result[ ${ i } ] => `, mutated[ i ], '!=', result[ i ] );
+function check( testObj, result ) {
+
+	for ( var i in testObj ) {
+		if ( typeof testObj[ i ] == 'object' ) {
+			if ( typeof result[ i ] != 'object' ) {
+				console.error( `Error in ${ index }: result[ ${ i } ] != testObj[ ${ i } ] => `, result[ i ], '!=', testObj[ i ] );
+			}
+			check( testObj[ i ], result[ i ], true );
+		} else if ( result[ i ] != testObj[ i ] ) {
+			console.error( `Error in ${ index }: result[ ${ i } ] != testObj[ ${ i } ] => `, result[ i ], '!=', testObj[ i ] );
 		}
 	}
 	if ( !arguments[ 2 ] ) index++;
