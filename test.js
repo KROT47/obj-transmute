@@ -21,11 +21,11 @@ rules = {
 	// saveOrigin: true,
 	content: 'text',
 	num: {
-		prop: 'temp',
-		get: ( temp ) => { return temp + 1 }
+		from: 'temp',
+		get: ( temp ) => temp + 1
 	},
 	obj1: {
-		prop: 'obj',
+		from: 'obj',
 		get: ( obj ) => { return { test: obj.test + 1 } }
 	}
 };
@@ -48,8 +48,8 @@ check( testObj, result );
 rules = {
 	content: 'text',
 	num: {
-		prop: 'temp',
-		get: ( temp ) => { return temp + 1 }
+		from: 'temp',
+		get: ( temp ) => temp + 1
 	}
 };
 
@@ -78,8 +78,8 @@ check( testObj, result );
 rules = {
 	content: 'text',
 	num: {
-		prop: 'temp',
-		get: ( temp ) => { return temp + 1 }
+		from: 'temp',
+		get: ( temp ) => temp + 1
 	}
 };
 
@@ -106,9 +106,9 @@ check( testObj, result );
 rules = {
 	content: 'text',
 	num: {
-		prop: 'none',
+		from: 'none',
 		default: 111,
-		get: ( none ) => { return none + 1 }
+		get: ( none ) => none && none + 1 || undefined
 	}
 };
 
@@ -135,13 +135,13 @@ check( testObj, result );
 
 rules = {
 	content: {
-		prop: 'text',
+		from: 'text',
 		saveOrigin: false
 	},
 	num: {
-		prop: 'none',
+		from: 'none',
 		default: 111,
-		get: ( none ) => { return none + 1 }
+		get: ( none ) => none && none + 1 || undefined
 	},
 	opt: 'opt'
 };
@@ -152,7 +152,7 @@ var defaultObj = {
 
 config = {
 	otherProps: true,
-	get: function ( value, originProp, obj, prop ) { return value || defaultObj[ originProp ] },
+	get: function ( value, obj, originProp, prop ) { return value || defaultObj[ originProp ] },
 	saveOrigin: true,
 };
 
@@ -171,6 +171,95 @@ result = ObjTransmute( obj, rules, config );
 check( testObj, result );
 
 
+/* ------------ 6 ------------- */
+
+var obj = {
+        a: 1,
+        b: 'Hello world!',
+        other1: null
+    },
+    rules = {
+        c: 'a',
+        d: function ( value, obj, originProp, prop ) { return obj.b + this.obj.a },
+        e: {
+            from: 'a1',
+            default: 'Bye world!',
+            get: function ( a1, obj, originProp, prop ) {
+            	return a1 === undefined ? null : a1 + '!!!'
+        	}
+        },
+        f: {
+            from: 'a1',
+            default: 'Bye world!',
+        },
+        g: {
+            default: 'default',
+            get: function ( g, obj, originProp, prop ) { return g && g + '!!!' || undefined }
+        },
+    };
+
+testObj = {
+	g: 'default',
+	f: 'Bye world!',
+	e: null,
+	d: 'Hello world!1',
+	c: 1
+};
+
+result = ObjTransmute( obj, rules );
+
+check( testObj, result );
+
+
+/* ------------ 7 ------------- */
+
+var config = {
+        otherProps: true
+    };
+
+testObj = {
+	other1: null,
+	b: 'Hello world!',  
+	g: 'default',       
+	f: 'Bye world!',    
+	e: null,            
+	d: 'Hello world!1', 
+	c: 1
+};
+
+result = ObjTransmute( obj, rules, config );
+
+check( testObj, result );
+
+
+/* ------------ 8 ------------- */
+
+var defaultOptions = {
+        other1: 123
+    };
+
+var config = {
+        otherProps: true,
+        saveOrigin: true,
+        get: function ( value, obj, originProp, prop ) { return value || defaultOptions[ prop ] }
+    };
+
+testObj = {
+	other1: 123,
+	b: 'Hello world!',  
+	a: 1,               
+	g: 'default',       
+	f: 'Bye world!',    
+	e: null,            
+	d: 'Hello world!1', 
+	c: 1
+};
+
+result = ObjTransmute( obj, rules, config );
+
+check( testObj, result );
+
+
 /* --------------------------------- End --------------------------------- */
 
 console.log( 'Done!' );
@@ -179,9 +268,8 @@ console.log( 'Done!' );
 /* --------------------------------- Helpers --------------------------------- */
 
 function check( testObj, result ) {
-
 	for ( var i in testObj ) {
-		if ( typeof testObj[ i ] == 'object' ) {
+		if ( typeof testObj[ i ] == 'object' && testObj[ i ] !== null ) {
 			if ( typeof result[ i ] != 'object' ) {
 				console.error( `Error in ${ index }: result[ ${ i } ] != testObj[ ${ i } ] => `, result[ i ], '!=', testObj[ i ] );
 			}

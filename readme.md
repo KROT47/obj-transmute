@@ -15,22 +15,46 @@ var obj = {
         other1: null
     },
     rules = {
-        c: 'a',
-        d: function ( obj, result ) {
+        c: 'a',  // 'a' - originProp => result.c = obj.a
+        d: function ( d, obj, originProp, prop ) {
+            // context:
             // this.obj = obj
             // this.rules = rules
-            return obj.b + this.obj.a
+            // this.config = config
+            // this.result - result object in current state
+            // arguments:
+            // d = obj[ originProp ] = obj.d = undefined - obj value of same property 'd'
+            // originProp = 'd'
+            // obj = this.obj
+            // prop = 'd'
+            return obj.b + this.obj.a;
         },
         e: {
-            prop: 'a1',
-            default: 'Bye world!',
-            get: function ( a1, originProp, obj, prop ) { return a1 + '!!!' }
-        }
+            from: 'a1',             // originProp
+            default: 'Bye world!',  // working only when get() returns undefined
+            get: function ( a1, obj, originProp, prop ) {
+                // arguments:
+                // a1 = obj[ originProp ] = obj.a1 = undefined
+                // originProp = 'a1'
+                // obj = this.obj
+                // prop = 'e'
+                return a1 === undefined ? null : a1 + '!!!';
+            }
+        },
+        f: {
+            from: 'a1',             // originProp
+            default: 'Bye world!',  // value by default if obj.a1 === undefined
+        },
+        g: { // same as d example but on undefined returns default value
+            default: 'default',  // working only when get() returns undefined
+            get: function ( g, obj, originProp, prop ) { return g && g + '!!!' || undefined }
+        },
     };
 
-ObjTransmute( obj, rules ) => { c: 1, d: 'Hello world!1', e: 'Bye world!' }
+ObjTransmute( obj, rules ) => { c: 1, d: 'Hello world!1', e: null, f: 'Bye world!', g: 'default' }
 
-// -- Using config
+
+/* ------------ Using config ------------- */
 
 var config = {
         otherProps: true
@@ -40,11 +64,14 @@ ObjTransmute( obj, rules, config ) => {
         b: 'Hello world!',  // not defined in rules - passes through
         c: 1,
         d: 'Hello world!1',
-        e: 'Bye world!',
+        e: null,
+        f: 'Bye world!',
+        g: 'default',
         other1: null        // not defined in rules - passes through
     }
 
-// --
+
+/* ------------ Using Default Object ------------- */
 
 var defaultOptions = {
         other1: 123
@@ -53,7 +80,8 @@ var defaultOptions = {
 var config = {
         otherProps: true,
         saveOrigin: true,
-        get: function ( value, originProp, obj, prop ) { return value || defaultOptions[ prop ] }
+        // define get by default
+        get: function ( value, obj, originProp, prop ) { return value || defaultOptions[ prop ] }
     };
 
 ObjTransmute( obj, rules, config ) => {
@@ -61,7 +89,9 @@ ObjTransmute( obj, rules, config ) => {
         b: 'Hello world!',  // origin
         c: 1,
         d: 'Hello world!1',
-        e: 'Bye world!',
+        e: null,
+        f: 'Bye world!',
+        g: 'default',
         other1: 123                // unused value but using default get() returns value from defaultOptions
     }
 ```

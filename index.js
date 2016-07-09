@@ -21,7 +21,7 @@ const defaultConfig = {
 		// value - obj[ originProp ]
 		// originProp - obj property name to get value from
 		// prop - result property name
-		get: function ( value, originProp, obj, prop ) { return value }
+		get: function ( value, obj, originProp, prop ) { return value }
 	};
 
 
@@ -30,8 +30,8 @@ const defaultConfig = {
 function ObjTransmute( obj, rules, config ) {
 
 	var result = {},
-		context = { obj: obj, rules: rules },
-		rule, prop, originProp, getProp, defaultValue, saveOrigin, toDelete = [];
+		context = { obj: obj, rules: rules, config: config, result: result },
+		rule, prop, originProp, defaultValue, saveOrigin, toDelete = [];
 
 	config = extend( {}, defaultConfig, config );
 
@@ -54,19 +54,17 @@ function ObjTransmute( obj, rules, config ) {
 
 		switch ( typeof rule ) {
 
-			case 'function': result[ prop ] = rule.call( context, obj, result );
+			case 'function': result[ prop ] = rule.call( context, obj[ prop ], obj, prop, prop );
 			break;
 
 			case 'object':
-				if ( !rule.prop ) throw Error( `Undefined prop in ruleConfig.${prop}` );
+				// if ( !rule.from ) throw Error( `Undefined prop in ruleConfig.${prop}` );
 
-				originProp = rule.prop;
+				originProp = rule.from || prop;
 
-				getProp = rule.get || config.get;
-
-				if ( typeof getProp == 'function' && obj[ originProp ] ) {
+				if ( typeof rule.get == 'function' ) {
 					result[ prop ] = 
-						getProp.call( context, obj[ originProp ], originProp, obj, prop );
+						rule.get.call( context, obj[ originProp ], obj, originProp, prop );
 				}
 
 				// try to set default
@@ -74,6 +72,12 @@ function ObjTransmute( obj, rules, config ) {
 					defaultValue = rule.default || config.default;
 
 					if ( defaultValue !== undefined ) result[ prop ] = defaultValue;
+				}
+
+				// try to use default get()
+				if ( result[ prop ] === undefined ) {
+					result[ prop ] = 
+						config.get.call( context, obj[ originProp ], obj, originProp, prop );
 				}
 
 				// try to save origin prop if undefined
@@ -88,7 +92,7 @@ function ObjTransmute( obj, rules, config ) {
 
 			// no rule - default pass prop
 			case 'undefined':
-				result[ prop ] = config.get.call( context, obj[ prop ], prop, obj, prop );
+				result[ prop ] = config.get.call( context, obj[ prop ], obj, prop, prop );
 
 				// try to set default
 				if ( result[ prop ] === undefined && config.default !== undefined ) {
@@ -100,7 +104,7 @@ function ObjTransmute( obj, rules, config ) {
 				originProp = rule;
 
 				result[ prop ] = 
-					config.get.call( context, obj[ originProp ], originProp, obj, prop );
+					config.get.call( context, obj[ originProp ], obj, originProp, prop );
 
 				// try to save origin prop if undefined
 				if ( config.saveOrigin
