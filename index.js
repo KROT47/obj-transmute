@@ -1,7 +1,7 @@
 
 /* --------------------------------- Required Modules --------------------------------- */
 
-const Extend = require( 'extend' );
+const Extend = require( __dirname + '/extend' );
 
 
 /* --------------------------------- Module Exports --------------------------------- */
