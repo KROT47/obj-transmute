@@ -32,6 +32,7 @@ var obj = {
         e: {
             from: 'a1',             // originProp
             default: 'Bye world!',  // working only when get() returns undefined
+            descriptor: { enumerable: false }, // result.e will be nonenumerable
             get: function ( a1, obj, originProp, prop ) {
                 // arguments:
                 // a1 = obj[ originProp ] = obj.a1 = undefined
@@ -57,7 +58,8 @@ ObjTransmute( obj, rules ) => { c: 1, d: 'Hello world!1', e: null, f: 'Bye world
 /* ------------ Using config ------------- */
 
 var config = {
-        otherProps: true
+        otherProps: true,
+        descriptor: { enumerable: false } // now all options by default will be nonenumerable
     };
 
 ObjTransmute( obj, rules, config ) => {
@@ -96,7 +98,8 @@ ObjTransmute( obj, rules, config ) => {
     }
     
 /* ------------ Using Require Option ------------- */
-// Reuqire option is used when we need other property to be calculated before current property
+
+// Require option is used when we need other property to be calculated before current property
 var obj = {
         a: 'Hello world',
         b: 1
