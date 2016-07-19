@@ -22,6 +22,9 @@ const defaultConfig = {
 		// default value for all values of not founded props ( if undefined - prop wont be added )
 		default: undefined,
 
+		// if defined property will be defined with descriptor extended from this one
+		descriptor: undefined,
+
 		// default function to get prop value
 		// value - obj[ originProp ]
 		// originProp - obj property name to get value from
@@ -85,12 +88,22 @@ function ObjTransmute( obj, rules, config ) {
 		return getFunc.call( context, obj[ originProp ], obj, originProp, prop );
 	}
 
+	function defineProp( prop, value, descriptor ) {
+		descriptor = descriptor || config.descriptor;
+
+		if ( descriptor ) {
+			Object.defineProperty( result, prop, extend( {}, descriptor, { value: value } ) );
+		} else {
+			result[ prop ] = value;
+		}
+	}
+
 	function propHandler( prop, rule ) {
 		var require, originProp;
 
 		switch ( typeof rule ) {
 
-			case 'function': result[ prop ] = get( rule, prop, prop );
+			case 'function': defineProp( prop, get( rule, prop, prop ) );
 			break;
 
 			case 'object':
@@ -121,19 +134,19 @@ function ObjTransmute( obj, rules, config ) {
 				originProp = rule.from || prop;
 
 				if ( typeof rule.get == 'function' ) {
-					result[ prop ] = get( rule.get, originProp, prop );
+					defineProp( prop, get( rule.get, originProp, prop ), rule.descriptor );
 				}
 
 				// try to set default
 				if ( result[ prop ] === undefined ) {
 					defaultValue = rule.default || config.default;
 
-					if ( defaultValue !== undefined ) result[ prop ] = defaultValue;
+					if ( defaultValue !== undefined ) defineProp( prop, defaultValue );
 				}
 
 				// try to use default get()
 				if ( result[ prop ] === undefined ) {
-					result[ prop ] = get( config.get, originProp, prop );
+					defineProp( prop, get( config.get, originProp, prop ), rule.descriptor );
 				}
 
 				// try to save origin prop if undefined
@@ -148,7 +161,7 @@ function ObjTransmute( obj, rules, config ) {
 
 			// no rule - default pass prop
 			case 'undefined':
-				result[ prop ] = get( config.get, prop, prop );
+				defineProp( prop, get( config.get, prop, prop ) );
 
 				// try to set default
 				if ( result[ prop ] === undefined && config.default !== undefined ) {
@@ -159,7 +172,7 @@ function ObjTransmute( obj, rules, config ) {
 			default: if ( !rule ) break;
 				originProp = rule;
 
-				result[ prop ] = get( config.get, originProp, prop );
+				defineProp( prop, get( config.get, originProp, prop ) );
 
 				// try to save origin prop if undefined
 				if ( config.saveOrigin

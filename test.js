@@ -305,6 +305,40 @@ result = ObjTransmute( obj, rules, config );
 check( testObj, result );
 
 
+/* ------------ 10 ------------- */
+
+var config = {
+        descriptor: { enumerable: false }
+    };
+
+var obj = {
+        a: 'Hello world'
+    },
+    rules = {
+    	b: {
+    		from: 'a',
+    	},
+    	c: {
+    		from: 'a',
+    		descriptor: { enumerable: true },
+    	}
+    };
+
+testObj = {
+	b: 'Hello world',
+	c: 'Hello world'
+};
+
+result = ObjTransmute( obj, rules, config );
+
+var getDescr = Object.getOwnPropertyDescriptor;
+
+console.assert( getDescr( result, 'b' ).enumerable == false, 'Descriptor is not working' );
+console.assert( getDescr( result, 'c' ).enumerable == true, 'Descriptor is not working' );
+
+check( testObj, result );
+
+
 /* --------------------------------- End --------------------------------- */
 
 console.log( 'Done!' );
