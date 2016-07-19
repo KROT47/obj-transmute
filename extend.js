@@ -37,7 +37,7 @@ function isPlainObject( obj ) {
  * Default extend function
  */
 function Extend() {
-    var options, name, src, copy, copyIsArray, clone,
+    var options, name, src, copy, copyIsArray, clone, names, k,
         target = arguments[ 0 ],
         i = 1,
         length = arguments.length,
@@ -57,8 +57,12 @@ function Extend() {
         options = arguments[ i ];
         // Only deal with non-null/undefined values
         if ( options != null ) {
+
+            names = Object.getOwnPropertyNames( options );
+
             // Extend the base object
-            for ( name in options ) {
+            for ( k = names.length; k--; ) {
+                name = names[ k ];
                 src = target[ name ];
                 copy = options[ name ];
 

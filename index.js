@@ -1,7 +1,7 @@
 
 /* --------------------------------- Required Modules --------------------------------- */
 
-const Extend = require( __dirname + '/extend' );
+const Prototype = require( 'ultimate-prototype' );
 
 
 /* --------------------------------- Module Exports --------------------------------- */
@@ -34,7 +34,7 @@ const defaultConfig = {
 
 function ObjTransmute( obj, rules, config ) {
 
-	obj = Extend( true, {}, obj );
+	obj = Prototype.extend( {}, obj );
 
 	var result = {},
 		context = { obj: obj, rules: rules, config: config, result: result },

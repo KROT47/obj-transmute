@@ -21,5 +21,7 @@
     "url": "https://github.com/KROT47/obj-transmute/issues"
   },
   "homepage": "https://github.com/KROT47/obj-transmute#readme",
-  "dependencies": {}
+  "dependencies": {
+    "ultimate-prototype": "^1.0.2"
+  }
 }
